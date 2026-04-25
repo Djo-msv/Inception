@@ -20,7 +20,7 @@ _main() {
 
 	# need to setup database
 	
-	exec "$@"
+	#exec "$@"
 }
 
 if ! _is_sourced; then
