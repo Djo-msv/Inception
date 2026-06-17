@@ -1,12 +1,17 @@
-FROM alpine:3.22
+FROM alpine:3.22.4
 
-EXPOSE 3660
+COPY tools/entrypoint.sh /bin/
+COPY conf/mysql.cnf /etc/mysql.cnf
 
-COPY tools/mdb_entrypoint.sh /usr/local/bin/mdb_entrypoint.sh
-#COPY conf/my.cnf /etc/mysql/my.cnf
-#VOLUME ./data /var/data
+RUN chmod 777 /bin/entrypoint.sh
+RUN chmod 777 /etc/mysql.cnf
 
-RUN apk add mariadb mariadb-client
-RUN chmod +x /usr/local/bin/mdb_entrypoint.sh
+RUN apk add --no-cache mariadb mariadb-client
 
-ENTRYPOINT ["sh", "/usr/local/bin/mdb_entrypoint.sh"]
+RUN mkdir -p /run/mysqld
+
+RUN mariadb-install-db --user=mysql --basedir=/usr --datadir=/var/lib/mysql
+RUN chown -R mysql:mysql /run/mysqld /var/lib/mysql
+
+ENTRYPOINT ["/bin/entrypoint.sh"]
+CMD ["mariadbd"]

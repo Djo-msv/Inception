@@ -1,0 +1,10 @@
+#!/bin/sh
+
+mariadbd -u mysql << EOF
+CREATE DATABASE IF NOT EXISTS db;
+CREATE USER IF NOT EXISTS 'jojo'@'%' IDENTIFIED BY '1234';
+GRANT ALL PRIVILEGES ON db.* TO 'jojo'@'%';
+FLUSH PRIVILEGES; 
+EOF
+
+exec "$@"
