@@ -3,3 +3,4 @@
 port		= 3306
 socket		= /var/run/mysqld/mysqld.sock
 bind_address	= 0.0.0.0
+skip-networking = OFF

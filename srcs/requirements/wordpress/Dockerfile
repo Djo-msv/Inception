@@ -31,7 +31,10 @@ RUN apk update \
 	curl \
 	mariadb-client
 
-RUN mv /usr/bin/php84 /usr/bin/phpa
+RUN mv /usr/bin/php84 /usr/bin/php
+
+RUN mkdir -p /var/www/html/
+RUN chown -R root:www-data /var/www/html/
 
 RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \
 	&& chmod +x wp-cli.phar \
