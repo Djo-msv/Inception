@@ -31,10 +31,14 @@ RUN apk update \
 	curl \
 	mariadb-client
 
-RUN mv /usr/bin/php84 /usr/bin/php
+RUN adduser -S -G www-data www-data
 
-RUN mkdir -p /var/www/html/
-RUN chown -R root:www-data /var/www/html/
+RUN mkdir -p /var/log/php84
+RUN mkdir -p /var/www/html
+RUN chown -R www-data:www-data /var/log/php84
+RUN chown -R www-data:www-data /var/www/html
+
+RUN mv /usr/bin/php84 /usr/bin/php
 
 RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \
 	&& chmod +x wp-cli.phar \
@@ -43,5 +47,9 @@ RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli
 COPY conf/php.ini /etc/php84/php.ini
 COPY conf/www.conf /etc/php84/php-fpm.d/
 
+RUN mkdir -p /var/www/html
+RUN wp core download --path="/var/www/html" --allow-root
+
+USER www-data
 
 ENTRYPOINT ["/bin/entrypoint.sh"]

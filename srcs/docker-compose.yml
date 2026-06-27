@@ -13,6 +13,23 @@ services :
     networks:
       - mariadb_network
 
+  wordpress:
+    build: requirements/wordpress/.
+    ports:
+      - 3306
+      - 9000
+    environment:
+      WORDPRESS_USER: "mysql_user"
+      WORDPRESS_DB_NAME: "db"
+    secrets:
+      - wordpress_user_password
+      - wordpress_admin_password
+      - wordpress_db_password
+    volumes:
+      - wordpress_volume:/var/www/html
+    networks:
+      - mariadb_network
+
 volumes:
   mariadb_volume:
     driver: local
@@ -21,10 +38,23 @@ volumes:
       type: none
       device: /home/${USER}/data/mariadb
 
+  wordpress_volume:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /home/${USER}/data/wordpress
+
 networks:
   mariadb_network:
     driver: bridge
 
 secrets:
   mariadb_password:
-    file: ../secrets/db_password.txt
+    file: ../secrets/mariadb_password.txt
+  wordpress_user_password:
+    file: ../secrets/user_password.txt
+  wordpress_admin_password:
+    file: ../secrets/admin_password.txt
+  wordpress_db_password:
+    file: ../secrets/wordpress_db_password.txt
