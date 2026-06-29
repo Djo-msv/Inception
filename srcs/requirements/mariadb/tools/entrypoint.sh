@@ -3,8 +3,8 @@
 
 docker_check_env() {
 	MYSQL_PASSWORD=$(cat /run/secrets/mariadb_password)
-	if [ -z "$MYSQL_DB" ]; then
-		export MYSQL_DB=db
+	if [ -z "$WORDPRESS_DB_NAME" ]; then
+		export WORDPRESS_DB_NAME=wordpress_db
 	fi
 	if [[ -z "$MYSQL_USER" ]] || [[ -z "$MYSQL_PASSWORD" ]]; then
 		echo "Mysql User or Password is missing"
@@ -37,12 +37,12 @@ _main() {
 
 		wait_db
 
-		echo "DB=$MYSQL_DB USER=$MYSQL_USER PASSWORD=$MYSQL_PASSWORD"
+		echo "DB=$WORDPRESS_DB_NAME USER=$MYSQL_USER PASSWORD=$MYSQL_PASSWORD"
 		echo "=== Début setup SQL ==="
 		mariadb --socket=/var/run/mysqld/mysqld.sock << EOF
-CREATE DATABASE IF NOT EXISTS ${MYSQL_DB};
+CREATE DATABASE IF NOT EXISTS $WORDPRESS_DB_NAME;
 CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'%' IDENTIFIED BY '${MYSQL_PASSWORD}';
-GRANT ALL PRIVILEGES ON ${MYSQL_DB}.* TO '${MYSQL_USER}'@'%';
+GRANT ALL PRIVILEGES ON $WORDPRESS_DB_NAME.* TO '${MYSQL_USER}'@'%';
 FLUSH PRIVILEGES;
 EOF
 		echo "=== Setup SQL terminé, code retour : $? ==="

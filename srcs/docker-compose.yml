@@ -4,23 +4,24 @@ services :
     ports:
       - 3306
     environment:
-      MYSQL_DB: "db"
-      MYSQL_USER: "mysql_user"
+      WORDPRESS_DB_NAME: $WORDPRESS_DB_NAME
+      MYSQL_USER: $MYSQL_USER
     secrets:
       - mariadb_password
     volumes:
       - mariadb_volume:/var/lib/mysql
     networks:
       - mariadb_network
+    restart: unless-stopped
 
   wordpress:
     build: requirements/wordpress/.
     ports:
-      - 3306
       - 9000
     environment:
-      WORDPRESS_USER: "mysql_user"
-      WORDPRESS_DB_NAME: "db"
+      MYSQL_USER: $MYSQL_USER
+      WORDPRESS_USER: $WORDPRESS_USER
+      WORDPRESS_DB_NAME: $WORDPRESS_DB_NAME
     secrets:
       - wordpress_user_password
       - wordpress_admin_password
@@ -29,6 +30,20 @@ services :
       - wordpress_volume:/var/www/html
     networks:
       - mariadb_network
+      - wordpress_network
+    restart: unless-stopped
+
+  nginx:
+    build: requirements/nginx/.
+    ports:
+      - 443:443
+    volumes:
+      - wordpress_volume:/var/www/html
+    networks:
+      - wordpress_network
+    depends_on:
+      - wordpress
+    restart: unless-stopped
 
 volumes:
   mariadb_volume:
@@ -47,6 +62,8 @@ volumes:
 
 networks:
   mariadb_network:
+    driver: bridge
+  wordpress_network:
     driver: bridge
 
 secrets:

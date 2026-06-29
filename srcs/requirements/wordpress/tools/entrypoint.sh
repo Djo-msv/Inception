@@ -17,6 +17,9 @@ _docker_check_env() {
 		echo "Db can't have empty password"
 		exit 1;
 	fi
+	if [ -z "$MYSQL_USER" ]; then
+		export MYSQL_USER=mysql_user
+	fi
 	if [ -z "$WORDPRESS_USER" ]; then
 		export WORDPRESS_USER=wp_user
 	fi
@@ -30,7 +33,7 @@ _docker_check_env() {
 		export WORDPRESS_ADMIN_EMAIL=admin@email.com
 	fi
 	if [ -z "$WORDPRESS_DB_NAME" ]; then
-		export WORDPRESS_DB_NAME=wp_db
+		export WORDPRESS_DB_NAME=wordpress_db
 	fi
 	if [ -z "$SITE_NAME" ]; then
 		export SITE_NAME=site
@@ -40,7 +43,7 @@ _docker_check_env() {
 wait_db() {
     i=30
     while [ $i -gt 0 ]; do
-        mariadb -h mariadb -u ${WORDPRESS_USER} -p${DB_PASSWORD} -e "SELECT 1;" > /dev/null 2>&1 && break
+        mariadb -h mariadb -u ${MYSQL_USER} -p${DB_PASSWORD} -e "SELECT 1;" > /dev/null 2>&1 && break
         echo "Waiting for MariaDB... ($i)"
         sleep 1
         i=$((i - 1))
@@ -59,11 +62,11 @@ _main() {
 		echo "Wordpress already Initialize"
 	else
 
-		wp config create --dbname=${WORDPRESS_DB_NAME} --dbuser=${WORDPRESS_USER} --dbpass=${DB_PASSWORD} --dbhost=mariadb:3306 --path="/var/www/html" --skip-check
+		wp config create --dbname=${WORDPRESS_DB_NAME} --dbuser=${MYSQL_USER} --dbpass=${DB_PASSWORD} --dbhost=mariadb:3306 --path="/var/www/html" --skip-check
 
 		wp core install --url=jmassavi.42.fr --title=${SITE_NAME} --admin_user=${WORDPRESS_ADMIN} --admin_password=${ADMIN_PASSWORD} --admin_email=caca@gmail.com --path="/var/www/html"
 
-		wp user create ${WORDPRESS_USER} ${WORDPRESS_USER_EMAIL} --user_pass=${USER_PASSWORD} --path="/var/www/html" --role=contributor
+		wp user create ${WORDPRESS_USER} ${WORDPRESS_USER_EMAIL} --user-pass=${USER_PASSWORD} --path="/var/www/html" --role=contributor
 	fi
 	exec php-fpm84 -F
 }

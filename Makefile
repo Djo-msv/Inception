@@ -1,5 +1,6 @@
 
 SRCS := srcs/
+ENV := srcs/.env
 THIS_FILE := $(lastword $(MAKEFILE_LIST))
 .PHONY: help build up start down destroy stop restart logs logs-api ps login-timescale login-api db-shell
 
@@ -9,7 +10,7 @@ help:
 build:
 	docker-compose -f $(SRCS)docker-compose.yml build $(c)
 up:
-	docker-compose -f $(SRCS)docker-compose.yml up $(c)
+	docker-compose -f $(SRCS)docker-compose.yml --env-file $(ENV) up $(c)
 start:
 	docker-compose -f $(SRCS)docker-compose.yml start $(c)
 down:
