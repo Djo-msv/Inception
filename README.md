@@ -97,3 +97,5 @@ The entire infrastructure is orchestrated with **Docker Compose**, allowing all 
 
 * [Official Documentation](https://mariadb.com/docs)
 * [Official Image](https://github.com/MariaDB/mariadb-docker)
+
+AI was use for clean .md files cause I dont speak english
