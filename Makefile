@@ -8,6 +8,7 @@ THIS_FILE := $(lastword $(MAKEFILE_LIST))
 help:
 	@make -pRrq  -f $(THIS_FILE) : 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | grep -E -v -e '^[^[:alnum:]]' -e '^$@$$'
 build:
+	mkdir -p /home/${USER}/data/mariadb /home/${USER}/data/wordpress
 	docker-compose -f $(SRCS)docker-compose.yml build $(c)
 up:
 	docker-compose -f $(SRCS)docker-compose.yml --env-file $(ENV) up $(c)

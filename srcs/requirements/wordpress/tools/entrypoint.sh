@@ -64,9 +64,9 @@ _main() {
 
 		wp config create --dbname=${WORDPRESS_DB_NAME} --dbuser=${MYSQL_USER} --dbpass=${DB_PASSWORD} --dbhost=mariadb:3306 --path="/var/www/html" --skip-check
 
-		wp core install --url=jmassavi.42.fr --title=${SITE_NAME} --admin_user=${WORDPRESS_ADMIN} --admin_password=${ADMIN_PASSWORD} --admin_email=caca@gmail.com --path="/var/www/html"
+		wp core install --url=jmassavi.42.fr --title=${SITE_NAME} --admin_user=${WORDPRESS_ADMIN} --admin_password=${ADMIN_PASSWORD} --admin_email=${WORDPRESS_ADMIN_EMAIL} --path="/var/www/html"
 
-		wp user create ${WORDPRESS_USER} ${WORDPRESS_USER_EMAIL} --user-pass=${USER_PASSWORD} --path="/var/www/html" --role=contributor
+		wp user create ${WORDPRESS_USER} ${WORDPRESS_USER_EMAIL} --user_pass=${USER_PASSWORD} --path="/var/www/html" --role=contributor
 	fi
 	exec php-fpm84 -F
 }
