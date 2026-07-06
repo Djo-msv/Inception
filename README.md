@@ -1,20 +1,20 @@
 # Inception
 
-Ce projet a été créé dans le cadre du programme **42** par **jmassavi**.
+This project was developed as part of the **42** curriculum by **jmassavi**.
 
 ## Description
 
-Ce projet consiste à mettre en place une petite infrastructure composée de plusieurs services Docker, en respectant des règles spécifiques. L'objectif est de découvrir la conteneurisation avec Docker, la création d'images personnalisées, la gestion des volumes, des réseaux et des services.
+This project consists of setting up a small infrastructure composed of several Docker services while following a set of specific requirements. The goal is to gain hands-on experience with containerization using Docker, creating custom images, and managing volumes, networks, and services.
 
 ## Instructions
 
-### Prérequis
+### Prerequisites
 
 * [Docker Compose](https://docs.docker.com/engine/install/)
 
-Un **Makefile** est inclus afin de simplifier la gestion du projet. Il permet de construire les images, démarrer les conteneurs, les arrêter ainsi que supprimer automatiquement les volumes.
+A **Makefile** is included to simplify project management. It allows you to build the images, start and stop the containers, and automatically remove the associated volumes.
 
-Exemples de commandes :
+Example commands:
 
 ```bash
 make build
@@ -22,78 +22,78 @@ make up
 make down -v
 ```
 
-D'autres commandes sont disponibles avec :
+Additional commands are available with:
 
 ```bash
 make help
 ```
 
-## Choix d'infrastructure
+## Infrastructure Choices
 
 ### Virtual Machines vs Docker
 
-La différence entre les machines virtuelles (VM) et Docker est importante, notamment en matière de performances.
+The difference between virtual machines (VMs) and Docker is significant, especially in terms of performance.
 
-Un conteneur Docker partage le noyau du système d'exploitation de l'hôte, tandis qu'une machine virtuelle embarque son propre système d'exploitation complet. Les conteneurs sont donc beaucoup plus légers, consomment moins de ressources et démarrent en quelques secondes, là où une VM nécessite davantage de mémoire et de temps de démarrage.
+A Docker container shares the host operating system's kernel, whereas a virtual machine runs its own complete operating system. As a result, containers are much lighter, consume fewer resources, and start within seconds, while VMs require more memory and take longer to boot.
 
-Docker fonctionne également à partir d'**images** immuables. Une image décrit précisément l'environnement d'exécution d'une application, ce qui garantit qu'elle pourra être déployée de manière identique sur n'importe quelle machine compatible. Cela permet d'éviter le célèbre problème :
+Docker also relies on immutable **images**. An image precisely defines an application's runtime environment, ensuring that it can be deployed consistently on any compatible machine. This helps eliminate the well-known problem:
 
-> « Ça marche sur ma machine. »
+> "It works on my machine."
 
 ### Secrets vs Environment Variables
 
-Les variables d'environnement sont simples à utiliser mais ne sont pas conçues pour stocker des informations sensibles. Elles peuvent être consultées depuis le conteneur, apparaître dans les métadonnées Docker ou être exposées dans les journaux, ce qui représente un risque de sécurité lorsqu'elles contiennent des mots de passe, des clés API ou d'autres données confidentielles.
+Environment variables are easy to use but are not designed to store sensitive information. They can be accessed from within the container, appear in Docker metadata, or be exposed in logs, making them unsuitable for passwords, API keys, or other confidential data.
 
-Les **Docker Secrets** ont été conçus pour répondre à ce problème. Les secrets sont stockés de manière sécurisée par Docker et sont montés dans le conteneur sous forme de fichiers temporaires accessibles uniquement aux processus autorisés. Ils ne sont pas intégrés dans l'image et limitent ainsi le risque de fuite d'informations sensibles.
+**Docker Secrets** were designed to address this issue. Secrets are securely stored by Docker and mounted into containers as temporary files that are accessible only to authorized processes. Since they are not embedded in the image, they significantly reduce the risk of exposing sensitive information.
 
 ### Docker Network vs Host Network
 
-Par défaut, Docker crée des réseaux virtuels qui permettent aux conteneurs de communiquer entre eux tout en restant isolés du réseau de la machine hôte. Chaque conteneur possède sa propre adresse IP privée, ce qui améliore la sécurité et facilite l'organisation des services.
+By default, Docker creates virtual networks that allow containers to communicate with one another while remaining isolated from the host machine's network. Each container has its own private IP address, improving security and making service organization easier.
 
-Le mode **host**, quant à lui, désactive cette isolation : le conteneur utilise directement le réseau de la machine hôte. Cela peut offrir de meilleures performances réseau, mais réduit l'isolation et augmente les risques de conflits de ports ou de sécurité. Pour cette raison, le mode **bridge** (réseau Docker par défaut) est généralement préféré pour les architectures composées de plusieurs services.
+The **host** networking mode disables this isolation by allowing the container to use the host's network stack directly. While this can provide better network performance, it also reduces isolation and increases the risk of port conflicts and security issues. For this reason, the default **bridge** network is generally preferred for multi-service architectures.
 
 ### Docker Volumes vs Bind Mounts
 
-Docker propose deux méthodes principales pour persister les données.
+Docker provides two main ways to persist data.
 
-Les **Volumes** sont entièrement gérés par Docker. Ils sont indépendants de l'arborescence du système hôte, facilitent les sauvegardes, les migrations et offrent de meilleures performances sur certaines plateformes. Ils constituent la solution recommandée pour les données de production, comme les bases de données.
+**Volumes** are fully managed by Docker. They are independent of the host filesystem, making backups and migrations easier while offering better performance on some platforms. They are the recommended solution for production data, such as databases.
 
-Les **Bind Mounts** relient directement un dossier du système hôte à un dossier du conteneur. Cette solution est particulièrement pratique durant le développement, car les modifications effectuées sur les fichiers sont immédiatement visibles depuis le conteneur. En revanche, elle crée une dépendance avec l'organisation des fichiers de la machine hôte et peut poser des problèmes de portabilité.
+**Bind mounts** directly map a directory from the host machine to a directory inside the container. This approach is especially convenient during development because changes made to files on the host are immediately reflected inside the container. However, it creates a dependency on the host's filesystem structure and may reduce portability.
 
-Dans ce projet, les **Volumes Docker** sont privilégiés afin d'assurer la persistance des données tout en conservant une infrastructure facilement reproductible.
+In this project, **Docker Volumes** are preferred to ensure data persistence while keeping the infrastructure easily reproducible.
 
 ## Architecture
 
-L'infrastructure est composée de plusieurs services isolés qui communiquent grâce à un réseau Docker dédié.
+The infrastructure consists of several isolated services that communicate through a dedicated Docker network.
 
-Chaque service est construit à partir de sa propre image Docker et possède un rôle précis :
+Each service is built from its own Docker image and serves a specific purpose:
 
-* **NGINX** : serveur web et reverse proxy.
-* **WordPress** : application web PHP.
-* **MariaDB** : base de données utilisée par WordPress.
+* **NGINX**: Web server and reverse proxy.
+* **WordPress**: PHP web application.
+* **MariaDB**: Database used by WordPress.
 
-Les données persistantes sont stockées dans des volumes Docker afin qu'elles soient conservées même après la suppression des conteneurs.
+Persistent data is stored in Docker volumes, ensuring it remains available even after the containers are removed.
 
-L'ensemble est orchestré par **Docker Compose**, qui permet de lancer tous les services avec une seule commande et de gérer leurs dépendances.
+The entire infrastructure is orchestrated with **Docker Compose**, allowing all services to be started with a single command while managing their dependencies automatically.
 
-## Ressources
+## Resources
 
 ### Docker
 
-* [Documentation officielle](https://docs.docker.com/compose/)
+* [Official Documentation](https://docs.docker.com/compose/)
 
-### Nginx
+### NGINX
 
-* [Image officielle](https://github.com/nginx/docker-nginx)
-* [Configuration de Nginx avec Docker](https://www.docker.com/blog/how-to-use-the-official-nginx-docker-image/)
-* [How to Build a Custom Nginx Image](https://www.datacamp.com/tutorial/nginx-docker)
+* [Official Image](https://github.com/nginx/docker-nginx)
+* [Using the Official NGINX Docker Image](https://www.docker.com/blog/how-to-use-the-official-nginx-docker-image/)
+* [How to Build a Custom NGINX Image](https://www.datacamp.com/tutorial/nginx-docker)
 
 ### WordPress
 
-* [Image officielle](https://github.com/docker-library/wordpress)
+* [Official Image](https://github.com/docker-library/wordpress)
 * [csenelle](https://github.com/Kamisenin)
 
 ### MariaDB
 
-* [Documentation officielle](https://mariadb.com/docs)
-* [Image officielle](https://github.com/MariaDB/mariadb-docker)
+* [Official Documentation](https://mariadb.com/docs)
+* [Official Image](https://github.com/MariaDB/mariadb-docker)
