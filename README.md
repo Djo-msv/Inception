@@ -91,7 +91,7 @@ L'ensemble est orchestré par **Docker Compose**, qui permet de lancer tous les 
 ### WordPress
 
 * [Image officielle](https://github.com/docker-library/wordpress)
-* [csenelle le GOAT](https://github.com/Kamisenin)
+* [csenelle](https://github.com/Kamisenin)
 
 ### MariaDB
 
