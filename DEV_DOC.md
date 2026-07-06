@@ -139,3 +139,53 @@ Ces volumes permettent de recréer entièrement les conteneurs sans perdre les d
 # Réseau
 
 Les trois conteneurs communiquent via un réseau bridge privé.
+```Internet
+│
+▼
+NGINX
+│
+▼
+WordPress
+│
+▼
+MariaDB
+```
+
+MariaDB n'est jamais exposé à l'extérieur.
+
+Seul NGINX publie un port.
+
+---
+
+# Variables d'environnement
+
+Les paramètres non sensibles sont stockés dans `.env`.
+
+Les informations sensibles sont stockées dans les Docker Secrets.
+
+Les scripts lisent automatiquement ces fichiers au démarrage.
+
+---
+
+# Scripts d'initialisation
+
+Chaque service possède un script `entrypoint` chargé de :
+
+- préparer l'environnement ;
+- vérifier les prérequis ;
+- effectuer les opérations de première installation ;
+- lancer le processus principal.
+
+Le dernier processus est exécuté avec `exec` afin qu'il devienne le PID 1 du conteneur.
+
+---
+
+# Reconstruction
+
+Pour reconstruire complètement le projet :
+
+```bash
+make down -v
+make build
+make up
+```
