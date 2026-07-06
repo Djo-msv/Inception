@@ -1,145 +1,149 @@
 # Developer Documentation
 
-Cette documentation décrit le fonctionnement interne du projet Inception ainsi que les choix techniques effectués.
+This documentation describes the internal architecture of the **Inception** project and the technical decisions made during its implementation.
 
 ---
 
-# Arborescence
-```.
+# Project Structure
+
+```text
+.
 ├── Makefile
 ├── srcs
-│ ├── docker-compose.yml
-│ ├── .env
-│ ├── requirements
-│ │ ├── mariadb
-│ │ ├── nginx
-│ │ └── wordpress
-│ └── secrets
+│   ├── docker-compose.yml
+│   ├── .env
+│   ├── requirements
+│   │   ├── mariadb
+│   │   ├── nginx
+│   │   └── wordpress
+│   └── secrets
 └── README.md
 ```
 
-Chaque service possède son propre dossier contenant :
+Each service has its own directory containing:
 
-- un `Dockerfile`
-- un script d'initialisation
-- les fichiers de configuration nécessaires
+* a `Dockerfile`;
+* an initialization script;
+* the required configuration files.
 
 ---
 
-# Cycle de démarrage
+# Startup Sequence
 
-Le démarrage suit l'ordre suivant :
+The services are started in the following order:
 
-1. Création du réseau Docker.
-2. Création des volumes.
-3. Construction des images.
-4. Lancement de MariaDB.
-5. Initialisation de la base de données.
-6. Lancement de WordPress.
-7. Installation automatique de WordPress via WP-CLI.
-8. Lancement de NGINX.
-9. Le reverse proxy devient accessible sur le port 443.
+1. Create the Docker network.
+2. Create the Docker volumes.
+3. Build the Docker images.
+4. Start the MariaDB container.
+5. Initialize the database.
+6. Start the WordPress container.
+7. Automatically install WordPress using WP-CLI.
+8. Start the NGINX container.
+9. The reverse proxy becomes available on port **443**.
 
-L'utilisation de `depends_on` garantit uniquement l'ordre de lancement des conteneurs. Les scripts d'initialisation attendent que les services soient réellement disponibles avant de poursuivre.
+The `depends_on` directive only guarantees the startup order of the containers. The initialization scripts wait until the required services are actually available before proceeding.
 
 ---
 
 # Docker Compose
 
-Le fichier `docker-compose.yml` est responsable de :
+The `docker-compose.yml` file is responsible for:
 
-- créer le réseau Docker ;
-- monter les volumes persistants ;
-- injecter les variables d'environnement ;
-- construire les images ;
-- définir les dépendances entre services.
+* creating the Docker network;
+* mounting persistent volumes;
+* injecting environment variables;
+* building the Docker images;
+* defining service dependencies.
 
-Aucune image officielle n'est utilisée directement. Toutes les images sont construites à partir des Dockerfiles du projet conformément au sujet.
+No official Docker images are used directly. All images are built from the project's own Dockerfiles, as required by the project specifications.
 
 ---
 
 # MariaDB
 
-## Objectif
+## Purpose
 
-MariaDB stocke toutes les données de WordPress.
+MariaDB stores all WordPress data.
 
-## Initialisation
+## Initialization
 
-Lors du premier lancement :
+On the first startup, the container:
 
-- création de la base de données ;
-- création de l'utilisateur WordPress ;
-- attribution des permissions.
+* creates the database;
+* creates the WordPress user;
+* grants the required permissions.
 
-Les données sont stockées dans un volume Docker afin d'être conservées après la suppression des conteneurs.
+The database files are stored in a Docker volume to ensure data persists even after the containers are removed.
 
 ---
 
 # WordPress
 
-## Objectif
+## Purpose
 
-Fournir le CMS.
+Provide the CMS.
 
-## Installation automatique
+## Automatic Installation
 
-Le conteneur vérifie si WordPress est déjà installé.
+The container checks whether WordPress is already installed.
 
-Si ce n'est pas le cas :
+If it is not, it performs the following steps:
 
-- téléchargement de WordPress ;
-- génération du fichier `wp-config.php` ;
-- installation via WP-CLI ;
-- création de l'utilisateur administrateur ;
-- création d'un utilisateur classique.
+* downloads WordPress;
+* generates the `wp-config.php` file;
+* installs WordPress using WP-CLI;
+* creates the administrator account;
+* creates a regular user account.
 
-Au redémarrage, ces opérations sont ignorées si WordPress est déjà installé.
+On subsequent restarts, these steps are skipped if WordPress has already been installed.
 
 ---
 
 # NGINX
 
-NGINX agit comme reverse proxy.
+NGINX acts as a reverse proxy.
 
-Responsabilités :
+Its responsibilities include:
 
-- terminaison TLS ;
-- distribution des fichiers statiques ;
-- transfert des requêtes PHP vers PHP-FPM.
+* TLS termination;
+* serving static files;
+* forwarding PHP requests to PHP-FPM.
 
-Le certificat TLS est généré automatiquement durant le build.
+The TLS certificate is generated automatically during the image build.
 
 ---
 
 # Volumes
 
-Deux volumes sont utilisés.
+The project uses two persistent Docker volumes.
 
-## MariaDB
+## MariaDB Volume
 
-Contient :
+Stores:
 
-- les bases de données ;
-- les utilisateurs ;
-- les tables.
+* databases;
+* users;
+* tables.
 
-## WordPress
+## WordPress Volume
 
-Contient :
+Stores:
 
-- les fichiers du site ;
-- les plugins ;
-- les uploads.
+* website files;
+* plugins;
+* uploaded media.
 
-Ces volumes permettent de recréer entièrement les conteneurs sans perdre les données.
+These volumes allow the containers to be recreated without losing any persistent data.
 
 ---
 
-# Réseau
+# Network
 
-Les trois conteneurs communiquent via un réseau bridge privé.
-```Internet
+The three containers communicate through a private Docker bridge network.
+
+```text
+Internet
 │
 ▼
 NGINX
@@ -151,38 +155,38 @@ WordPress
 MariaDB
 ```
 
-MariaDB n'est jamais exposé à l'extérieur.
+MariaDB is never exposed outside the Docker network.
 
-Seul NGINX publie un port.
-
----
-
-# Variables d'environnement
-
-Les paramètres non sensibles sont stockés dans `.env`.
-
-Les informations sensibles sont stockées dans les Docker Secrets.
-
-Les scripts lisent automatiquement ces fichiers au démarrage.
+Only NGINX publishes a port to the host.
 
 ---
 
-# Scripts d'initialisation
+# Environment Variables
 
-Chaque service possède un script `entrypoint` chargé de :
+Non-sensitive configuration values are stored in the `.env` file.
 
-- préparer l'environnement ;
-- vérifier les prérequis ;
-- effectuer les opérations de première installation ;
-- lancer le processus principal.
+Sensitive information is stored using Docker Secrets.
 
-Le dernier processus est exécuté avec `exec` afin qu'il devienne le PID 1 du conteneur.
+Each service automatically reads these files during startup.
 
 ---
 
-# Reconstruction
+# Initialization Scripts
 
-Pour reconstruire complètement le projet :
+Each service includes an `entrypoint` script responsible for:
+
+* preparing the environment;
+* verifying prerequisites;
+* performing first-time installation tasks;
+* starting the main process.
+
+The final process is executed with `exec` so that it becomes the container's PID 1.
+
+---
+
+# Rebuilding the Project
+
+To completely rebuild the project:
 
 ```bash
 make down -v
