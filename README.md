@@ -1,6 +1,6 @@
-# Inception
+_This project was developed as part of the **42** curriculum by **jmassavi**._
 
-This project was developed as part of the **42** curriculum by **jmassavi**.
+# Inception
 
 ## Description
 
